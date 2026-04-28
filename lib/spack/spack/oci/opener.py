@@ -6,6 +6,7 @@
 
 import base64
 import json
+import os
 import re
 import urllib.error
 import urllib.parse
@@ -406,12 +407,17 @@ def credentials_from_mirrors(
 
 def create_opener():
     """Create an opener that can handle OCI authentication."""
+    http_debuglevel = 1 if os.environ.get("SPACK_OCI_HTTP_DEBUG") else 0
+
     opener = urllib.request.OpenerDirector()
     for handler in [
         urllib.request.ProxyHandler(),
         urllib.request.UnknownHandler(),
-        urllib.request.HTTPHandler(),
-        spack.util.web.SpackHTTPSHandler(context=spack.util.web.ssl_create_default_context()),
+        urllib.request.HTTPHandler(debuglevel=http_debuglevel),
+        spack.util.web.SpackHTTPSHandler(
+            debuglevel=http_debuglevel,
+            context=spack.util.web.ssl_create_default_context(),
+        ),
         spack.util.web.SpackHTTPDefaultErrorHandler(),
         urllib.request.HTTPRedirectHandler(),
         urllib.request.HTTPErrorProcessor(),
